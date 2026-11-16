@@ -115,14 +115,9 @@ const CONFIG = {
       options: [ { t: "Good" }, { t: "Fine" }, { t: "Bad" } ]
     },
     {
-      q: "What is the one thing he is never allowed to do?",
-      key: "ban",
-      options: [
-        { t: "Say \"I'm not like other guys\"" },
-        { t: "Never ask a single question back" },
-        { t: "Text \"wyd\" after midnight" },
-        { t: "Explain my own job to me" }
-      ]
+      q: "When's the best time to be in contact?",
+      key: "contact",
+      options: [ { t: "Mornings" }, { t: "Afternoons" }, { t: "Evenings" }, { t: "Late at night" } ]
     },
     {
       q: "If he gets a chance, the first date is:",
@@ -192,7 +187,7 @@ function showVerdict() {
   const details =
     "\nHis opener was: " + answers.opener +
     "\nFirst date: " + answers.date +
-    "\nHe is never allowed to: " + answers.ban;
+    "\nBest time to reach me: " + answers.contact;
   let cls, title, blurb, text;
 
   if (verdict === "granted") {
