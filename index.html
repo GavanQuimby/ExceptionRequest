@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Form MH-1: Request for Individual Exception</title>
+<title>Exception Request</title>
 <style>
   :root {
     --paper: #f4efe3;
@@ -46,6 +46,7 @@
     font-family: Georgia, "Times New Roman", serif;
     font-size: 25px; line-height: 1.2; text-align: center; margin: 8px 0 12px;
   }
+  .applicant { text-align: center; margin: 0; font-size: 15px; }
   .meta { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 14px; }
   .meta dt { color: var(--faint); text-transform: uppercase; font-size: 12px; letter-spacing: .08em; padding-top: 2px; }
   .meta dd { margin: 0; border-bottom: 1px dotted var(--faint); }
@@ -90,92 +91,50 @@
 <main class="sheet">
   <header>
     <div class="bureau">Bureau of Certified Men Haters</div>
-    <h1>Form MH-1<br>Request for Individual Exception</h1>
-    <dl class="meta">
-      <dt>Applicant</dt><dd id="applicant"></dd>
-      <dt>Reviewer</dt><dd>You (certified)</dd>
-      <dt>Status</dt><dd id="status">Pending your review</dd>
-    </dl>
+    <h1>Exception Request</h1>
+    <p class="applicant">Applicant: <b id="applicant"></b></p>
   </header>
   <section id="stage" aria-live="polite"></section>
-  <footer>Form MH-1 (rev. 1) &middot; Nothing you tap here is saved or sent anywhere. The ruling only exists if you send it.</footer>
+  <footer>Nothing you tap here is saved or sent anywhere. He only sees your verdict if you send it to him.</footer>
 </main>
 
 <script>
 /* ================= EDIT THIS PART =================
-   Change your name, the wording, or the questions here.
-   "score" is how much an answer counts toward approval.
-   "key" stores her answer so it can appear in the final ruling. */
+   Change your name or the questions here.
+   "key" stores her answer so it can appear in the final verdict.
+   The last question decides the verdict: each option has a "verdict"
+   of "granted", "probation" or "denied". */
 const CONFIG = {
   applicantName: "Gavan",
   applicantFullName: "Gavan Quimby",
-  intro: "An applicant has requested an exception to your certification. The Bureau requires a reviewing officer to complete this form before any ruling is issued. It takes about a minute.",
+  intro: "Your bio says \"Certified Men Hater.\" Gavan is asking for an exception. Answer 4 quick questions and you'll get a verdict to send him.",
   questions: [
     {
-      q: "Section 1. Basis for your certification as a Men Hater?",
-      note: "For the Bureau's records.",
-      key: "basis",
-      options: [
-        { t: "Earned through extensive field experience" },
-        { t: "Natural talent" },
-        { t: "It's mostly a bit. Mostly." },
-        { t: "That information is classified" }
-      ]
+      q: "His opener was \"Can I apply for an exception?\" How was it?",
+      key: "opener",
+      options: [ { t: "Good" }, { t: "Fine" }, { t: "Bad" } ]
     },
     {
-      q: "Section 2. The applicant opened with \"Can I apply for an exception?\" Please rate the filing.",
-      options: [
-        { t: "Bold. Paperwork was in order.", score: 2 },
-        { t: "Acceptable. I've processed worse.", score: 1 },
-        { t: "The Bureau is not impressed.", score: 0 }
-      ]
-    },
-    {
-      q: "Section 3. Which offense should the applicant be permanently barred from committing?",
-      note: "He will be required to sign off on your selection.",
+      q: "What is the one thing he is never allowed to do?",
       key: "ban",
       options: [
-        { t: "Saying \"I'm not like other guys\"" },
-        { t: "Never asking a single question back" },
-        { t: "Texting \"wyd\" after midnight" },
-        { t: "Explaining my own job to me" }
+        { t: "Say \"I'm not like other guys\"" },
+        { t: "Never ask a single question back" },
+        { t: "Text \"wyd\" after midnight" },
+        { t: "Explain my own job to me" }
       ]
     },
     {
-      q: "Section 4. If an exception were granted, the probationary hearing would take place over:",
-      key: "hearing",
-      options: [
-        { t: "Coffee" },
-        { t: "Drinks" },
-        { t: "Food. Real food." },
-        { t: "A walk, so I can leave at any time" }
-      ]
+      q: "If he gets a chance, the first date is:",
+      key: "date",
+      options: [ { t: "Coffee" }, { t: "Drinks" }, { t: "Food" }, { t: "A walk" } ]
     },
     {
-      q: "Section 5. Who selects the venue?",
-      key: "venue",
+      q: "Your verdict:",
       options: [
-        { t: "Me, obviously" },
-        { t: "Him, and it had better be good" },
-        { t: "A joint committee" }
-      ]
-    },
-    {
-      q: "Section 6. Be honest: how much of this form made you smile?",
-      note: "Answers are under oath.",
-      options: [
-        { t: "More than I will ever admit", score: 2 },
-        { t: "A little", score: 1 },
-        { t: "I remain unmoved", score: 0 }
-      ]
-    },
-    {
-      q: "Section 7. Reviewing officer's recommendation:",
-      note: "This one carries the most weight. All three are real options.",
-      options: [
-        { t: "Grant the exception", score: 4 },
-        { t: "Probation. He's on thin ice.", score: 2 },
-        { t: "Denied. Certification stands.", score: -10 }
+        { t: "Approved. He gets a chance.", verdict: "granted" },
+        { t: "Maybe. He's on thin ice.", verdict: "probation" },
+        { t: "Denied.", verdict: "denied" }
       ]
     }
   ]
@@ -183,10 +142,9 @@ const CONFIG = {
 /* =============== END OF EDITABLE PART =============== */
 
 const stage = document.getElementById("stage");
-const statusEl = document.getElementById("status");
 document.getElementById("applicant").textContent = CONFIG.applicantFullName || CONFIG.applicantName;
 
-let step = 0, score = 0, answers = {};
+let step = 0, verdict = "denied", answers = {};
 
 function el(tag, attrs, ...kids) {
   const n = document.createElement(tag);
@@ -200,11 +158,10 @@ function el(tag, attrs, ...kids) {
 }
 
 function showIntro() {
-  step = 0; score = 0; answers = {};
-  statusEl.textContent = "Pending your review";
+  step = 0; verdict = "denied"; answers = {};
   stage.replaceChildren(
     el("p", null, CONFIG.intro),
-    el("button", { class: "primary", onclick: showQuestion }, "Begin review")
+    el("button", { class: "primary", onclick: showQuestion }, "Start")
   );
 }
 
@@ -214,18 +171,17 @@ function showQuestion() {
   const fill = el("i"); fill.style.width = (step / total * 100) + "%";
   const opts = el("div", { class: "opts" });
   item.options.forEach(o => {
-    opts.append(el("button", { class: "box", onclick: () => {
-      score += o.score || 0;
+    opts.append(el("button", { onclick: () => {
       if (item.key) answers[item.key] = o.t;
+      if (o.verdict) verdict = o.verdict;
       step++;
       step < total ? showQuestion() : showVerdict();
     } }, o.t));
   });
   stage.replaceChildren(
-    el("div", { class: "progress" }, "Section " + (step + 1) + " of " + total),
+    el("div", { class: "progress" }, "Question " + (step + 1) + " of " + total),
     el("div", { class: "bar" }, fill),
     el("h2", null, item.q),
-    el("p", { class: "note" }, item.note || ""),
     opts
   );
   window.scrollTo({ top: 0 });
@@ -233,47 +189,45 @@ function showQuestion() {
 
 function showVerdict() {
   const name = CONFIG.applicantName;
-  let cls, title, sub, blurb, text;
-  const terms =
-    "Hearing: " + answers.hearing + "\n" +
-    "Venue chosen by: " + answers.venue + "\n" +
-    "Applicant is barred from: " + answers.ban;
+  const details =
+    "\nHis opener was: " + answers.opener +
+    "\nFirst date: " + answers.date +
+    "\nHe is never allowed to: " + answers.ban;
+  let cls, title, blurb, text;
 
-  if (score >= 6) {
-    cls = "granted"; title = "Exception Granted"; sub = "one (1) individual only";
-    blurb = "The Bureau finds in favor of the applicant. Your certification remains valid against all other men.";
-    text = "BUREAU RULING, FORM MH-1\nVerdict: EXCEPTION GRANTED\n" + terms;
-  } else if (score >= 2) {
-    cls = "probation"; title = "Probationary Exception"; sub = "revocable at any time";
-    blurb = "The applicant is granted a trial period. One wrong move and the full certification applies.";
-    text = "BUREAU RULING, FORM MH-1\nVerdict: PROBATION (thin ice)\n" + terms;
+  if (verdict === "granted") {
+    cls = "granted"; title = "Approved";
+    blurb = name + " gets a chance. Everyone else is still on the list.";
+    text = "EXCEPTION REQUEST: APPROVED" + details;
+  } else if (verdict === "probation") {
+    cls = "probation"; title = "On Probation";
+    blurb = name + " gets a trial run. One wrong move and it's over.";
+    text = "EXCEPTION REQUEST: ON PROBATION (thin ice)" + details;
   } else {
-    cls = "denied"; title = "Exception Denied"; sub = "certification upheld";
-    blurb = "The Bureau has ruled against the applicant. " + name + " thanks the reviewing officer for her time and respects the decision.";
-    text = "BUREAU RULING, FORM MH-1\nVerdict: DENIED. Certification stands.";
+    cls = "denied"; title = "Denied";
+    blurb = "Request denied. " + name + " respects the decision.";
+    text = "EXCEPTION REQUEST: DENIED";
   }
-  statusEl.textContent = title;
 
-  const fallback = el("textarea", { rows: "6", readonly: "", hidden: "" });
+  const fallback = el("textarea", { rows: "5", readonly: "", hidden: "" });
   fallback.value = text;
   const copyBtn = el("button", { class: "primary", onclick: async () => {
     try {
       await navigator.clipboard.writeText(text);
-      copyBtn.textContent = "Copied. Paste it in the chat.";
+      copyBtn.textContent = "Copied! Now paste it in your chat.";
     } catch (e) {
       fallback.hidden = false; fallback.focus(); fallback.select();
-      copyBtn.textContent = "Select the text below and copy it";
+      copyBtn.textContent = "Copy the text below";
     }
-  } }, "Copy the official ruling");
+  } }, "Copy my verdict");
 
   stage.replaceChildren(
-    el("div", { class: "center" },
-      el("div", { class: "stamp " + cls }, title, el("small", null, sub))),
+    el("div", { class: "center" }, el("div", { class: "stamp " + cls }, title)),
     el("p", null, blurb),
     el("div", { class: "ruling" }, text),
-    el("p", { class: "note" }, "Rulings only take effect once delivered to the applicant. Copy it and send it to " + name + "."),
+    el("p", { class: "note" }, "Last step: copy your verdict and send it to " + name + " on Tinder."),
     copyBtn, fallback,
-    el("div", { class: "center" }, el("button", { class: "link", onclick: showIntro }, "Start the review over"))
+    el("div", { class: "center" }, el("button", { class: "link", onclick: showIntro }, "Start over"))
   );
   window.scrollTo({ top: 0 });
 }
